@@ -28,22 +28,31 @@ void check2(double val, const char name[], int l) {
 #define mC (2.0 / 3.0)
 #define bC 0.1
 
-static double loc_sigma(double x) { return aC * tanh(x * mC) + bC * x; }
-static double loc_sigma_d(double x) {
-  if (fabs(x) > 100) {
+static double loc_sigma(double x)
+{
+  return aC * tanh(x * mC) + bC * x;
+}
+static double loc_sigma_d(double x)
+{
+  if (fabs(x) > 100)
+  {
     return 0.0;
   }
   return (2.0 * aC * mC) / (1.0 + cosh(2.0 * mC * x)) + bC;
 }
-static double loc_sigma_d2(double x) {
-  if (fabs(x) > 100) {
+static double loc_sigma_d2(double x)
+{
+  if (fabs(x) > 100)
+  {
     return 0.0;
   }
   return (-8.0 * aC * pow(mC, 2) * sinh(mC * x)) /
          (3.0 * cosh(mC * x) + cosh(3.0 * mC * x));
 }
-static double loc_sigma_d3(double x) {
-  if (fabs(x) > 100) {
+static double loc_sigma_d3(double x)
+{
+  if (fabs(x) > 100)
+  {
     return 0;
   }
 
@@ -62,24 +71,31 @@ static double loc_cubic_d(double x) { return 4 * x * x * x; }
 static double loc_cubic_d2(double x) { return 12 * x * x; }
 static double loc_cubic_d3(double x) { return 24.0 * x; }
 
-int multilD_getNpar(int nL, int *arch) {
+int multilD_getNpar(int nL, int *arch)
+{
   int nPar = 0;
-  for (int i = nL - 1; i >= 1; i--) {
+  for (int i = nL - 1; i >= 1; i--)
+  {
     nPar += arch[i] * (arch[i - 1] + 1);
   }
   return nPar;
 }
 
 void multilD_set_act(multilayerD *net, multiL_act *activ, multiL_act *d_activ,
-                     multiL_act *d2_activ, multiL_act *d3_activ) {
-  for (int i = 0; i < net->nL; i++) {
+                     multiL_act *d2_activ, multiL_act *d3_activ)
+{
+  for (int i = 0; i < net->nL; i++)
+  {
     if (activ[i] == NULL || d_activ[i] == NULL || d2_activ[i] == NULL ||
-        d3_activ[i] == NULL) {
+        d3_activ[i] == NULL)
+    {
       net->act_fun[i] = loc_sigma;
       net->d_act_fun[i] = loc_sigma_d;
       net->d2_act_fun[i] = loc_sigma_d2;
       net->d3_act_fun[i] = loc_sigma_d3;
-    } else {
+    }
+    else
+    {
       net->act_fun[i] = activ[i];
       net->d_act_fun[i] = d_activ[i];
       net->d2_act_fun[i] = d2_activ[i];
@@ -90,7 +106,8 @@ void multilD_set_act(multilayerD *net, multiL_act *activ, multiL_act *d_activ,
 
 void multilD_set_act_one(multilayerD *net, int i, multiL_act activ,
                          multiL_act d_activ, multiL_act d2_activ,
-                         multiL_act d3_activ) {
+                         multiL_act d3_activ)
+{
 
   net->act_fun[i] = activ;
   net->d_act_fun[i] = d_activ;
@@ -98,8 +115,15 @@ void multilD_set_act_one(multilayerD *net, int i, multiL_act activ,
   net->d3_act_fun[i] = d3_activ;
 }
 
-multilayerD multilD_init_net(int nL, int *arch) {
+void multilD_setMode(multilayerD *net, bool mode)
+{
+  net->onlyDiagonal = mode;
+}
+
+multilayerD multilD_init_net(int nL, int *arch)
+{
   multilayerD net;
+  multilD_setMode(&net, false);
   net.nI = arch[0];
   net.nO = arch[nL - 1];
   net.nL = nL;
@@ -111,7 +135,8 @@ multilayerD multilD_init_net(int nL, int *arch) {
   net.offsetW = (int *)calloc(nL, sizeof(int));
   net.offsetB = (int *)calloc(nL, sizeof(int));
   net.maxNH = 0;
-  for (int i = 0; i < nL; i++) {
+  for (int i = 0; i < nL; i++)
+  {
     net.arch[i] = arch[i];
     if (net.arch[i] > net.maxNH)
       net.maxNH = arch[i];
@@ -119,13 +144,15 @@ multilayerD multilD_init_net(int nL, int *arch) {
 
   net.offsetW[0] = 0;
   net.offsetB[0] = arch[1] * arch[0];
-  for (int i = 1; i < nL - 1; i++) {
+  for (int i = 1; i < nL - 1; i++)
+  {
     net.offsetW[i] = net.offsetB[i - 1] + arch[i];
     net.offsetB[i] = net.offsetW[i] + arch[i] * arch[i + 1];
   }
   net.res_d = (double *)calloc(net.nI * net.nO, sizeof(double));
   net.res_d2 = (double **)malloc(net.nO * sizeof(double *));
-  for (int i = 0; i < net.nO; i++) {
+  for (int i = 0; i < net.nO; i++)
+  {
     net.res_d2[i] = (double *)calloc(net.nI * net.nI, sizeof(double));
   }
 
@@ -136,7 +163,8 @@ multilayerD multilD_init_net(int nL, int *arch) {
   net.parGrad_d = (double *)calloc(net.nPar * net.nO * net.nI, sizeof(double));
   net.parGrad_d2 =
       (double *)calloc(net.nPar * net.nO * net.nI * net.nI, sizeof(double));
-  for (int i = 0; i < net.nPar; i++) {
+  for (int i = 0; i < net.nPar; i++)
+  {
     net.par[i] = 0.5 * ran2(&idum);
   }
 
@@ -150,7 +178,8 @@ multilayerD multilD_init_net(int nL, int *arch) {
   net.d_act_fun[0] = loc_id_d;
   net.d2_act_fun[0] = loc_id_d2;
   net.d3_act_fun[0] = loc_id_d3;
-  for (int i = 1; i < nL - 1; i++) {
+  for (int i = 1; i < nL - 1; i++)
+  {
     net.act_fun[i] = loc_sigma;
     net.d_act_fun[i] = loc_sigma_d;
     net.d2_act_fun[i] = loc_sigma_d2;
@@ -173,7 +202,8 @@ multilayerD multilD_init_net(int nL, int *arch) {
   net.d2sd_li_dx2 = (double **)malloc(sizeof(double *) * nL);
   // net.d2sd2_li_dx2 = (double **)malloc(sizeof(double *) * nL);
 
-  for (int i = 0; i < nL; i++) {
+  for (int i = 0; i < nL; i++)
+  {
     net.li[i] = (double *)malloc(arch[i] * sizeof(double));
     net.s_li[i] = (double *)malloc(arch[i] * sizeof(double));
     net.sd_li[i] = (double *)malloc(arch[i] * sizeof(double));
@@ -193,26 +223,32 @@ multilayerD multilD_init_net(int nL, int *arch) {
   return net;
 }
 
-void multilD_save_net(multilayerD *net, const char fileName[]) {
+void multilD_save_net(multilayerD *net, const char fileName[])
+{
   FILE *fp = fopen(fileName, "w");
   int nPar = net->nPar;
-  for (int i = 0; i < nPar; i++) {
+  for (int i = 0; i < nPar; i++)
+  {
     fprintf(fp, "%lf\n", net->par[i]);
   }
   fclose(fp);
 }
 
-void multilD_load_net(multilayerD *net, const char fileName[]) {
+void multilD_load_net(multilayerD *net, const char fileName[])
+{
   FILE *fp = fopen(fileName, "r");
   int nPar = net->nPar;
-  for (int i = 0; i < nPar; i++) {
+  for (int i = 0; i < nPar; i++)
+  {
     fscanf(fp, "%lf", (net->par + i));
   }
   fclose(fp);
 }
 
-void multilD_free_net(multilayerD *net) {
-  if (net->input != NULL) {
+void multilD_free_net(multilayerD *net)
+{
+  if (net->input != NULL)
+  {
     free(net->input);
   }
 
@@ -229,7 +265,8 @@ void multilD_free_net(multilayerD *net) {
 
   free(net->res_d);
 
-  for (int i = 0; i < net->nO; i++) {
+  for (int i = 0; i < net->nO; i++)
+  {
     free(net->res_d2[i]);
   }
   free(net->res_d2);
@@ -239,7 +276,8 @@ void multilD_free_net(multilayerD *net) {
   free(net->d2_act_fun);
   free(net->d3_act_fun);
 
-  for (int i = 0; i < net->nL; i++) {
+  for (int i = 0; i < net->nL; i++)
+  {
     free(net->li[i]);
     free(net->s_li[i]);
     free(net->sd_li[i]);
@@ -261,35 +299,42 @@ void multilD_free_net(multilayerD *net) {
   free(net->d2sd_li_dx2);
 }
 
-static double Wjk(int j, int k, int L, multilayerD *net) {
+static double Wjk(int j, int k, int L, multilayerD *net)
+{
   double temp = net->par[net->offsetW[L - 1] + k + (net->arch[L - 1]) * j];
   // check(temp, "wjk");
   return temp;
 }
 
-static double Bj(int j, int L, multilayerD *net) {
+static double Bj(int j, int L, multilayerD *net)
+{
   double temp = net->par[net->offsetB[L - 1] + j];
   // check(temp, "bj");
   return temp;
 }
 
-void multilD_Evaluate(multilayerD *net) {
+void multilD_Evaluate(multilayerD *net)
+{
 
-  for (int i = 0; i < net->nI; i++) {
+  for (int i = 0; i < net->nI; i++)
+  {
     net->li[0][i] = net->input[i];
     net->s_li[0][i] = net->act_fun[0](net->input[i]);
     net->sd_li[0][i] = net->d_act_fun[0](net->input[i]);
     net->sd2_li[0][i] = net->d2_act_fun[0](net->input[i]);
     net->sd3_li[0][i] = net->d3_act_fun[0](net->input[i]);
 
-    for (int a = 0; a < net->nI; a++) {
+    for (int a = 0; a < net->nI; a++)
+    {
       net->ds_li_dx[0][a + i * (net->nI)] = (i == a ? net->sd_li[0][i] : 0.0);
       net->dsd_li_dx[0][a + i * (net->nI)] = (i == a ? net->sd2_li[0][i] : 0.0);
 
-      for (int b = 0; b <= a; b++) {
+      for (int b = 0; b <= a; b++)
+      {
         double temp1 = 0.0;
         double temp2 = 0.0;
-        if (a == b && a == i) {
+        if (a == b && a == i)
+        {
           temp1 = net->sd2_li[0][i];
           temp2 = net->sd3_li[0][i];
         }
@@ -304,10 +349,13 @@ void multilD_Evaluate(multilayerD *net) {
     }
   }
   double temp[net->nI];
-  for (int L = 1; L < net->nL; L++) {
-    for (int j = 0; j < net->arch[L]; j++) {
+  for (int L = 1; L < net->nL; L++)
+  {
+    for (int j = 0; j < net->arch[L]; j++)
+    {
       net->li[L][j] = 0.0;
-      for (int k = 0; k < net->arch[L - 1]; k++) {
+      for (int k = 0; k < net->arch[L - 1]; k++)
+      {
         net->li[L][j] += net->s_li[L - 1][k] * Wjk(j, k, L, net);
       }
       net->li[L][j] += Bj(j, L, net);
@@ -318,17 +366,21 @@ void multilD_Evaluate(multilayerD *net) {
       net->sd3_li[L][j] = net->d3_act_fun[L](net->li[L][j]);
       // check2(net->sd3_li[L][j], "sd3_1", L);
 
-      for (int a = 0; a < net->nI; a++) {
+      for (int a = 0; a < net->nI; a++)
+      {
         temp[a] = 0.0;
-        for (int i = 0; i < net->arch[L - 1]; i++) {
+        for (int i = 0; i < net->arch[L - 1]; i++)
+        {
           temp[a] +=
               Wjk(j, i, L, net) * net->ds_li_dx[L - 1][a + i * (net->nI)];
         }
         net->ds_li_dx[L][a + j * (net->nI)] = temp[a] * net->sd_li[L][j];
         net->dsd_li_dx[L][a + j * (net->nI)] = temp[a] * net->sd2_li[L][j];
-        for (int b = 0; b <= a; b++) {
+        for (int b = 0; b <= a; b++)
+        {
           double temp1 = 0.0;
-          for (int i = 0; i < net->arch[L - 1]; i++) {
+          for (int i = 0; i < net->arch[L - 1]; i++)
+          {
             temp1 += Wjk(j, i, L, net) *
                      net->d2s_li_dx2[L - 1][b + a * (net->nI) +
                                             i * (net->nI) * (net->nI)];
@@ -354,7 +406,8 @@ void multilD_Evaluate(multilayerD *net) {
     }
   }
 }
-void multilD_EvaluateParGradient(multilayerD *net) {
+void multilD_EvaluateParGradient(multilayerD *net)
+{
   int count = 0;
   double sigma_vec[net->maxNH];
   double sigmaTemp_vec[net->maxNH];
@@ -365,12 +418,16 @@ void multilD_EvaluateParGradient(multilayerD *net) {
   double sigmaDot2_vec[net->maxNH][(net->nI) * (net->nI)];
   double sigmaDot2Temp_vec[net->maxNH][(net->nI) * (net->nI)];
 
-  for (int i = 0; i < net->nO; i++) {
-    for (int f = 0; f < net->maxNH; f++) {
+  for (int i = 0; i < net->nO; i++)
+  {
+    for (int f = 0; f < net->maxNH; f++)
+    {
       sigma_vec[f] = 0.0;
-      for (int a = 0; a < net->nI; a++) {
+      for (int a = 0; a < net->nI; a++)
+      {
         sigmaDot_vec[f][a] = 0.0;
-        for (int b = 0; b < net->nI; b++) {
+        for (int b = 0; b < net->nI; b++)
+        {
           sigmaDot2_vec[f][b + a * (net->nI)] = 0.0;
         }
       }
@@ -378,15 +435,18 @@ void multilD_EvaluateParGradient(multilayerD *net) {
     sigma_vec[i] = 1.0;
     // ok that sigmaDot = 0
 
-    for (int L = net->nL - 1; L > 0; L--) {
+    for (int L = net->nL - 1; L > 0; L--)
+    {
       // gradient of the output w.r.t. the parameters
-      for (int j = 0; j < net->arch[L]; j++) {
+      for (int j = 0; j < net->arch[L]; j++)
+      {
         int index = net->offsetB[L - 1] + i * (net->nPar) + j;
         net->parGrad[index] = sigma_vec[j] * net->sd_li[L][j];
 
         // net->parGrad[index] = net->parGrad[index] > 0 ? 1.0 : 1.0;
         // count++;
-        for (int k = 0; k < net->arch[L - 1]; k++) {
+        for (int k = 0; k < net->arch[L - 1]; k++)
+        {
           index = net->offsetW[L - 1] + i * (net->nPar) + k +
                   (net->arch[L - 1]) * j;
           net->parGrad[index] =
@@ -395,14 +455,16 @@ void multilD_EvaluateParGradient(multilayerD *net) {
           // count++;
         }
 
-        for (int a = 0; a < net->nI; a++) {
+        for (int a = 0; a < net->nI; a++)
+        {
           // a * (net->nPar * net->nO) + i * net->nPar;
           int nCycle = a * (net->nPar * net->nO) + i * net->nPar;
           index = nCycle + net->offsetB[L - 1] + j;
           double foo = sigmaDot_vec[j][a] * net->sd_li[L][j] +
                        sigma_vec[j] * net->dsd_li_dx[L][a + j * (net->nI)];
           net->parGrad_d[index] = foo;
-          for (int k = 0; k < net->arch[L - 1]; k++) {
+          for (int k = 0; k < net->arch[L - 1]; k++)
+          {
             index = nCycle + net->offsetW[L - 1] + k + (net->arch[L - 1]) * j;
             net->parGrad_d[index] = foo * net->s_li[L - 1][k] +
                                     sigma_vec[j] * net->sd_li[L][j] *
@@ -411,7 +473,8 @@ void multilD_EvaluateParGradient(multilayerD *net) {
             // count++;
           }
 
-          for (int b = 0; b <= a; b++) {
+          for (int b = 0; b <= a; b++)
+          {
             int nCycle1 = b * (net->nPar * net->nO * net->nI) +
                           a * (net->nPar * net->nO) + i * net->nPar;
             int nCycle2 = a * (net->nPar * net->nO * net->nI) +
@@ -426,7 +489,8 @@ void multilD_EvaluateParGradient(multilayerD *net) {
             foo += sigmaDot_vec[j][a] * net->dsd_li_dx[L][b + j * (net->nI)];
             net->parGrad_d2[index1] = foo;
             net->parGrad_d2[index2] = foo;
-            for (int k = 0; k < net->arch[L - 1]; k++) {
+            for (int k = 0; k < net->arch[L - 1]; k++)
+            {
               index1 =
                   nCycle1 + net->offsetW[L - 1] + k + (net->arch[L - 1]) * j;
               index2 =
@@ -455,24 +519,30 @@ void multilD_EvaluateParGradient(multilayerD *net) {
         }
       }
 
-      for (int l = 0; l < net->arch[L - 1]; l++) {
+      for (int l = 0; l < net->arch[L - 1]; l++)
+      {
         sigmaTemp_vec[l] = 0.0;
-        for (int a = 0; a < net->nI; a++) {
+        for (int a = 0; a < net->nI; a++)
+        {
           sigmaDotTemp_vec[l][a] = 0.0;
-          for (int b = 0; b < net->nI; b++) {
+          for (int b = 0; b < net->nI; b++)
+          {
             sigmaDot2Temp_vec[l][b + a * (net->nI)] = 0.0;
           }
         }
 
-        for (int j = 0; j < net->arch[L]; j++) {
+        for (int j = 0; j < net->arch[L]; j++)
+        {
           sigmaTemp_vec[l] +=
               sigma_vec[j] * Wjk(j, l, L, net) * net->sd_li[L][j];
-          for (int a = 0; a < net->nI; a++) {
+          for (int a = 0; a < net->nI; a++)
+          {
             sigmaDotTemp_vec[l][a] +=
                 sigmaDot_vec[j][a] * Wjk(j, l, L, net) * net->sd_li[L][j] +
                 sigma_vec[j] * Wjk(j, l, L, net) *
                     net->dsd_li_dx[L][a + j * (net->nI)];
-            for (int b = 0; b <= a; b++) {
+            for (int b = 0; b <= a; b++)
+            {
               int index1 = b + a * (net->nI) + j * (net->nI) * (net->nI);
               double temp_loc = 0.0;
               temp_loc += sigmaDot2_vec[j][b + a * (net->nI)] *
@@ -490,11 +560,14 @@ void multilD_EvaluateParGradient(multilayerD *net) {
           }
         }
       }
-      for (int j = 0; j < net->arch[L - 1]; j++) {
+      for (int j = 0; j < net->arch[L - 1]; j++)
+      {
         sigma_vec[j] = sigmaTemp_vec[j];
-        for (int a = 0; a < net->nI; a++) {
+        for (int a = 0; a < net->nI; a++)
+        {
           sigmaDot_vec[j][a] = sigmaDotTemp_vec[j][a];
-          for (int b = 0; b < net->nI; b++) {
+          for (int b = 0; b < net->nI; b++)
+          {
             sigmaDot2_vec[j][b + a * (net->nI)] =
                 sigmaDot2Temp_vec[j][b + a * (net->nI)];
           }
@@ -502,9 +575,11 @@ void multilD_EvaluateParGradient(multilayerD *net) {
       }
     }
     // gradient w.r.t. the input as sigma L=0
-    for (int a = 0; a < net->nI; a++) {
+    for (int a = 0; a < net->nI; a++)
+    {
       net->res_d[a + (net->nI) * i] = sigma_vec[a];
-      for (int b = 0; b < net->nI; b++) {
+      for (int b = 0; b < net->nI; b++)
+      {
         net->res_d2[i][a + b * (net->nI)] =
             sigmaDot_vec[b][a] * net->sd_li[0][b] +
             sigma_vec[b] * net->dsd_li_dx[0][a + b * (net->nI)];
@@ -513,38 +588,204 @@ void multilD_EvaluateParGradient(multilayerD *net) {
   }
 }
 
-void multilD_FullEvaluate(multilayerD *net, double *x) {
-  if (x != NULL) {
-    for (int i = 0; i < net->nI; i++) {
+void multilD_EvaluateDiagonalParGradient(multilayerD *net)
+{
+  int count = 0;
+  double sigma_vec[net->maxNH];
+  double sigmaTemp_vec[net->maxNH];
+
+  double sigmaDot_vec[net->maxNH][net->nI];
+  double sigmaDotTemp_vec[net->maxNH][net->nI];
+
+  double sigmaDot2_vec[net->maxNH][net->nI];
+  double sigmaDot2Temp_vec[net->maxNH][net->nI];
+
+  for (int i = 0; i < net->nO; i++)
+  {
+    for (int f = 0; f < net->maxNH; f++)
+    {
+      sigma_vec[f] = 0.0;
+      for (int a = 0; a < net->nI; a++)
+      {
+        sigmaDot_vec[f][a] = 0.0;
+        // Only diagonal elements, i.e. b=a
+        sigmaDot2_vec[f][a] = 0.0;
+      }
+    }
+    sigma_vec[i] = 1.0;
+    // ok that sigmaDot = 0
+
+    for (int L = net->nL - 1; L > 0; L--)
+    {
+      // gradient of the output w.r.t. the parameters
+      for (int j = 0; j < net->arch[L]; j++)
+      {
+        int index = net->offsetB[L - 1] + i * (net->nPar) + j;
+        net->parGrad[index] = sigma_vec[j] * net->sd_li[L][j];
+
+        // net->parGrad[index] = net->parGrad[index] > 0 ? 1.0 : 1.0;
+        // count++;
+        for (int k = 0; k < net->arch[L - 1]; k++)
+        {
+          index = net->offsetW[L - 1] + i * (net->nPar) + k +
+                  (net->arch[L - 1]) * j;
+          net->parGrad[index] =
+              sigma_vec[j] * net->sd_li[L][j] * net->s_li[L - 1][k];
+          // net->parGrad[index] = net->parGrad[index] > 0 ? 1.0 : 1.0;
+          // count++;
+        }
+
+        for (int a = 0; a < net->nI; a++)
+        {
+          // a * (net->nPar * net->nO) + i * net->nPar;
+          int nCycle = a * (net->nPar * net->nO) + i * net->nPar;
+          index = nCycle + net->offsetB[L - 1] + j;
+          double foo = sigmaDot_vec[j][a] * net->sd_li[L][j] +
+                       sigma_vec[j] * net->dsd_li_dx[L][a + j * (net->nI)];
+          net->parGrad_d[index] = foo;
+          for (int k = 0; k < net->arch[L - 1]; k++)
+          {
+            index = nCycle + net->offsetW[L - 1] + k + (net->arch[L - 1]) * j;
+            net->parGrad_d[index] = foo * net->s_li[L - 1][k] +
+                                    sigma_vec[j] * net->sd_li[L][j] *
+                                        net->ds_li_dx[L - 1][a + k * (net->nI)];
+            // net->parGrad[index] = net->parGrad[index] > 0 ? 1.0 : 1.0;
+            // count++;
+          }
+
+          int nCycle1 = a * (net->nPar * net->nO * net->nI) +
+                        a * (net->nPar * net->nO) + i * net->nPar;
+          int index1 = nCycle1 + net->offsetB[L - 1] + j;
+          foo = sigmaDot2_vec[j][a] * net->sd_li[L][j];
+          foo +=
+              sigma_vec[j] * net->d2sd_li_dx2[L][a + a * (net->nI) +
+                                                 j * (net->nI) * (net->nI)];
+          foo += 2.0 * sigmaDot_vec[j][a] * net->dsd_li_dx[L][a + j * (net->nI)];
+          net->parGrad_d2[index1] = foo;
+          for (int k = 0; k < net->arch[L - 1]; k++)
+          {
+            index1 =
+                nCycle1 + net->offsetW[L - 1] + k + (net->arch[L - 1]) * j;
+            double foo2 = 0.0;
+            foo2 += foo * net->s_li[L - 1][k];
+            foo2 += 2.0 * sigmaDot_vec[j][a] * net->sd_li[L][j] *
+                    net->ds_li_dx[L - 1][a + k * (net->nI)];
+            foo2 += 2.0 * sigma_vec[j] * net->dsd_li_dx[L][a + j * (net->nI)] *
+                    net->ds_li_dx[L - 1][a + k * (net->nI)];
+
+            foo2 += sigma_vec[j] * net->sd_li[L][j] *
+                    net->d2s_li_dx2[L - 1][a + a * (net->nI) +
+                                           k * (net->nI) * (net->nI)];
+
+            net->parGrad_d2[index1] = foo2;
+            // net->parGrad[index] = net->parGrad[index] > 0 ? 1.0 : 1.0;
+            // count++;
+          }
+        }
+      }
+
+      for (int l = 0; l < net->arch[L - 1]; l++)
+      {
+        sigmaTemp_vec[l] = 0.0;
+        for (int a = 0; a < net->nI; a++)
+        {
+          sigmaDotTemp_vec[l][a] = 0.0;
+          sigmaDot2Temp_vec[l][a] = 0.0;
+        }
+
+        for (int j = 0; j < net->arch[L]; j++)
+        {
+          sigmaTemp_vec[l] +=
+              sigma_vec[j] * Wjk(j, l, L, net) * net->sd_li[L][j];
+          for (int a = 0; a < net->nI; a++)
+          {
+            sigmaDotTemp_vec[l][a] +=
+                sigmaDot_vec[j][a] * Wjk(j, l, L, net) * net->sd_li[L][j] +
+                sigma_vec[j] * Wjk(j, l, L, net) *
+                    net->dsd_li_dx[L][a + j * (net->nI)];
+
+            int index1 = a + a * (net->nI) + j * (net->nI) * (net->nI);
+            double temp_loc = 0.0;
+            temp_loc += sigmaDot2_vec[j][a] *
+                        Wjk(j, l, L, net) * net->sd_li[L][j];
+            temp_loc += sigma_vec[j] * Wjk(j, l, L, net) *
+                        net->d2sd_li_dx2[L][index1];
+            temp_loc += 2.0 * sigmaDot_vec[j][a] * Wjk(j, l, L, net) *
+                        net->dsd_li_dx[L][a + j * (net->nI)];
+            sigmaDot2Temp_vec[l][a] += temp_loc;
+          }
+        }
+      }
+      for (int j = 0; j < net->arch[L - 1]; j++)
+      {
+        sigma_vec[j] = sigmaTemp_vec[j];
+        for (int a = 0; a < net->nI; a++)
+        {
+          sigmaDot_vec[j][a] = sigmaDotTemp_vec[j][a];
+          sigmaDot2_vec[j][a] = sigmaDot2Temp_vec[j][a];
+        }
+      }
+    }
+    // gradient w.r.t. the input as sigma L=0
+    for (int a = 0; a < net->nI; a++)
+    {
+      net->res_d[a + (net->nI) * i] = sigma_vec[a];
+
+      net->res_d2[i][a + a * (net->nI)] =
+          sigmaDot_vec[a][a] * net->sd_li[0][a] +
+          sigma_vec[a] * net->dsd_li_dx[0][a + a * (net->nI)];
+    }
+  }
+}
+
+void multilD_FullEvaluate(multilayerD *net, double *x)
+{
+  if (x != NULL)
+  {
+    for (int i = 0; i < net->nI; i++)
+    {
       net->input[i] = x[i];
     }
   }
   multilD_Evaluate(net);
-  multilD_EvaluateParGradient(net);
+  if (net->onlyDiagonal)
+    multilD_EvaluateDiagonalParGradient(net);
+  else
+    multilD_EvaluateParGradient(net);
 }
 
-double multilD_get_grad(int out, int par, multilayerD *net) {
+double multilD_get_grad(int out, int par, multilayerD *net)
+{
   return net->parGrad[out * net->nPar + par];
 }
 
-double multilD_get_grad_d(int out, int i, int par, multilayerD *net) {
+double multilD_get_grad_d(int out, int i, int par, multilayerD *net)
+{
   return net->parGrad_d[i * (net->nPar * net->nO) + out * net->nPar + par];
 }
 
-double multilD_get_grad_d2(int out, int i1, int i2, int par, multilayerD *net) {
-  return net->parGrad_d2[i2 * (net->nPar * net->nO * net->nI) +
-                         i1 * (net->nPar * net->nO) + out * net->nPar + par];
+double multilD_get_grad_d2(int out, int i1, int i2, int par, multilayerD *net)
+{
+  if (net->onlyDiagonal)
+    return net->parGrad_d2[i1 * (net->nPar * net->nO * net->nI) +
+                           i1 * (net->nPar * net->nO) + out * net->nPar + par];
+  else
+    return net->parGrad_d2[i2 * (net->nPar * net->nO * net->nI) +
+                           i1 * (net->nPar * net->nO) + out * net->nPar + par];
 }
 
-double multilD_get(int out, multilayerD *net) {
+double multilD_get(int out, multilayerD *net)
+{
   return net->s_li[net->nL - 1][out];
 }
 
-double multilD_get_d(int out, int i, multilayerD *net) {
+double multilD_get_d(int out, int i, multilayerD *net)
+{
   return net->res_d[i + out * (net->nI)];
 }
 
-double multilD_get_d2(int out, int i1, int i2, multilayerD *net) {
+double multilD_get_d2(int out, int i1, int i2, multilayerD *net)
+{
   return net->res_d2[out][i1 + i2 * (net->nI)];
 }
 

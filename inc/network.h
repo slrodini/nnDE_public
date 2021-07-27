@@ -2,7 +2,9 @@
 
 typedef double (*multiL_act)(double);
 
-typedef struct {
+typedef struct
+{
+  bool onlyDiagonal;
   int nI, nH, nO, nL, nPar;
   // architecture, arch[0]=nInput arch[back] = nOutput
   int *arch;
@@ -31,7 +33,33 @@ typedef struct {
 
 } multilayerD;
 
-typedef struct {
+typedef struct
+{
+  int nI, nH, nO, nL, nPar;
+  // architecture, arch[0]=nInput arch[back] = nOutput
+  int *arch;
+  int *offsetW, *offsetB;
+  // hidden layers (just the linear comb + the activated neuron)
+  double **li;
+  double **s_li, **sd_li, **sd2_li, **sd3_li;
+  double **ds_li_dx, **dsd_li_dx;
+
+  // double *res;
+  double *res_d;
+  double *par;
+  double *parGrad;
+  double *parGrad_d;
+  multiL_act *act_fun;
+  multiL_act *d_act_fun;
+  multiL_act *d2_act_fun;
+  int maxNH;
+
+  double *input;
+
+} multilayerD1;
+
+typedef struct
+{
   int nI, nH, nO, nL, nPar;
   // architecture, arch[0]=nInput arch[back] = nOutput
   int *arch;
@@ -70,6 +98,7 @@ double multil_get(int out, multilayer *net);
 // multilayerD functions
 int multilD_getNpar(int nH, int *arch);
 multilayerD multilD_init_net(int nL, int *arch);
+void multilD_setMode(multilayerD *net, bool mode);
 void multilD_set_act(multilayerD *net, multiL_act *activ, multiL_act *d_activ,
                      multiL_act *d2_activ, multiL_act *d3_activ);
 void multilD_set_act_one(multilayerD *net, int i, multiL_act activ,
@@ -89,3 +118,23 @@ double multilD_get_grad_d2(int out, int i1, int i2, int par, multilayerD *net);
 double multilD_get(int out, multilayerD *net);
 double multilD_get_d(int out, int i, multilayerD *net);
 double multilD_get_d2(int out, int i1, int i2, multilayerD *net);
+
+// multilayerD functions
+int multilD1_getNpar(int nH, int *arch);
+multilayerD1 multilD1_init_net(int nL, int *arch);
+void multilD1_set_act(multilayerD1 *net, multiL_act *activ, multiL_act *d_activ,
+                      multiL_act *d2_activ);
+void multilD1_set_act_one(multilayerD1 *net, int i, multiL_act activ,
+                          multiL_act d_activ, multiL_act d2_activ);
+void multilD1_save_net(multilayerD1 *net, const char fileName[]);
+void multilD1_load_net(multilayerD1 *net, const char fileName[]);
+void multilD1_free_net(multilayerD1 *net);
+
+void multilD1_Evaluate(multilayerD1 *net);
+void multilD1_EvaluateParGradient(multilayerD1 *net);
+void multilD1_FullEvaluate(multilayerD1 *net, double *x);
+
+double multilD1_get_grad(int out, int par, multilayerD1 *net);
+double multilD1_get_grad_d(int out, int i, int par, multilayerD1 *net);
+double multilD1_get(int out, multilayerD1 *net);
+double multilD1_get_d(int out, int i, multilayerD1 *net);

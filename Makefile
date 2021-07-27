@@ -6,9 +6,14 @@ OBJDIR=$(BASE)/obj
 INCDIR=$(BASE)/inc
 BINDIR=$(BASE)/bin
 
+
 CC=gcc
-CFLAGS = -O3 -Wall -I$(BASE)/inc
-PROGRAM=e6502
+CFLAGS = -O3 -Wall -I$(BASE)/inc -O3 
+LDFLAGS = -lm -lgsl -lgslcblas
+PRODIR=$(BASE)/runs
+TESTPRODIR=$(BASE)/tests
+PROGRAM=generic_pot
+TESTPROGRAM = test_der_dim
 
 CSRC=$(wildcard $(SRCDIR)/*.c)
 #OBJS = $(addprefix $(OBJDIR)/,$(CSRC:.c=.o))
@@ -16,12 +21,22 @@ CSRC=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(CSRC))
 
 all: $(BINDIR)/$(PROGRAM)
+test: $(BINDIR)/$(TESTPROGRAM)
 
-$(BINDIR)/$(PROGRAM): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@
+$(BINDIR)/$(PROGRAM): $(OBJS) $(OBJDIR)/$(PROGRAM).o
+	$(CC) $(CFLAGS) $(OBJS) $(OBJDIR)/$(PROGRAM).o -o $@ $(LDFLAGS)
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c $(INCDIR)/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BINDIR)/$(TESTPROGRAM): $(OBJS) $(OBJDIR)/$(TESTPROGRAM).o
+	$(CC) $(CFLAGS) $(OBJS) $(OBJDIR)/$(TESTPROGRAM).o -o $@ $(LDFLAGS)
+
+$(OBJDIR)/%.o : $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@ $(LDFLAGS)
+
+$(OBJDIR)/$(PROGRAM).o : $(PRODIR)/$(PROGRAM).c
+	$(CC) $(CFLAGS) -c $< -o $@ $(LDFLAGS)
+
+$(OBJDIR)/$(TESTPROGRAM).o : $(TESTPRODIR)/$(TESTPROGRAM).c
+	$(CC) $(CFLAGS) -c $< -o $@ $(LDFLAGS)
 
 clean:
 	rm -rf $(BINDIR)/* $(OBJDIR)/* && clear

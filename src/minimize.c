@@ -4,13 +4,14 @@ static double stepsize = 0.1;
 static double lineeps = 0.05;
 
 double run_adam(double *par, int nPar, void *addPar,
-                void (*fnc)(void *, double *, double *)) {
+                void (*fnc)(void *, double *, double *))
+{
   adamPar aP;
   aP.alpha = 0.1;
   aP.beta1 = 0.9;
   aP.beta2 = 0.92;
   aP.maxIt = 1e+3;
-  aP.dfToll = 1e-1;
+  aP.dfToll = 1e-6;
   aP.changeLearn = 400;
   double chiMin = adam2(par, nPar, addPar, fnc, &aP);
 
@@ -18,7 +19,7 @@ double run_adam(double *par, int nPar, void *addPar,
   aP.beta1 = 0.9;
   aP.beta2 = 0.99;
   aP.maxIt = 1e+3;
-  aP.dfToll = 1e-2;
+  aP.dfToll = 1e-6;
   aP.changeLearn = 400;
   chiMin = adam2(par, nPar, addPar, fnc, &aP);
 
@@ -28,11 +29,12 @@ double run_adam(double *par, int nPar, void *addPar,
   aP.maxIt = 1e+4;
   aP.changeLearn = 5000;
 
-  aP.dfToll = 1e-5;
+  aP.dfToll = 1e-6;
   return adam2(par, nPar, addPar, fnc, &aP);
 }
 
-typedef struct {
+typedef struct
+{
   void *addPar;
   void (*fnc)(void *, double *, double *);
   int nPar;
@@ -41,9 +43,11 @@ typedef struct {
 
 } gslMinimPar;
 
-double my_f(const gsl_vector *v, void *params) {
+double my_f(const gsl_vector *v, void *params)
+{
   gslMinimPar *gP = (gslMinimPar *)params;
-  for (int i = 0; i < gP->nPar; i++) {
+  for (int i = 0; i < gP->nPar; i++)
+  {
     gP->par[i] = gsl_vector_get(v, i);
   }
   gP->fnc(gP->addPar, gP->c2, gP->grad);
@@ -51,9 +55,11 @@ double my_f(const gsl_vector *v, void *params) {
 }
 
 /* The gradient of f, df = (df/dx, df/dy). */
-void my_df(const gsl_vector *v, void *params, gsl_vector *df) {
+void my_df(const gsl_vector *v, void *params, gsl_vector *df)
+{
   gslMinimPar *gP = (gslMinimPar *)params;
-  for (int i = 0; i < gP->nPar; i++) {
+  for (int i = 0; i < gP->nPar; i++)
+  {
     gP->par[i] = gsl_vector_get(v, i);
   }
   gP->fnc(gP->addPar, gP->c2, gP->grad);
@@ -62,13 +68,15 @@ void my_df(const gsl_vector *v, void *params, gsl_vector *df) {
 }
 
 /* Compute both f and df together. */
-void my_fdf(const gsl_vector *x, void *params, double *f, gsl_vector *df) {
+void my_fdf(const gsl_vector *x, void *params, double *f, gsl_vector *df)
+{
   *f = my_f(x, params);
   my_df(x, params, df);
 }
 
 double run_bfgs2(double *par, int nPar, void *addPar,
-                 void (*fnc)(void *, double *, double *)) {
+                 void (*fnc)(void *, double *, double *))
+{
   int iter = 0;
   int status;
 
@@ -108,12 +116,14 @@ double run_bfgs2(double *par, int nPar, void *addPar,
 
   gsl_multimin_fdfminimizer_set(s, &my_func, x, stepsize, lineeps);
 
-  do {
+  do
+  {
     iter++;
     status = gsl_multimin_fdfminimizer_iterate(s);
     printf("bfgs2 Iter: %4d  cur_chi2: %.4e\n", iter, s->f);
 
-    if (status) {
+    if (status)
+    {
       break;
     }
 
@@ -142,7 +152,8 @@ double run_bfgs2(double *par, int nPar, void *addPar,
 }
 
 double minimize(double *par, int nPar, void *addPar,
-                void (*fnc)(void *, double *, double *)) {
+                void (*fnc)(void *, double *, double *))
+{
 
   double adamRes = run_adam(par, nPar, addPar, fnc);
   // double gslRes = run_bfgs2(par, nPar, addPar, fnc);
@@ -156,7 +167,8 @@ double minimize(double *par, int nPar, void *addPar,
 }
 
 double minimize2(double *par, int nPar, void *addPar,
-                 void (*fnc)(void *, double *, double *)) {
+                 void (*fnc)(void *, double *, double *))
+{
   adamPar aP;
   aP.alpha = 0.001;
   aP.beta1 = 0.9;

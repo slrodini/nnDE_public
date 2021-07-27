@@ -5,7 +5,7 @@
 
 #include <default.h>
 #include <math.h>
-#include <nrutil.h>
+//#include<nrutil.h>
 #include <stdio.h>
 
 double ran2(long *idum);

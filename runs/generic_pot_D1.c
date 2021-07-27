@@ -11,7 +11,7 @@ typedef struct
 {
   int nX;
   double *x;
-  multilayerD *net;
+  multilayerD1 *net;
 } minim_par;
 
 #include <harmonic_potential.h>
@@ -19,33 +19,28 @@ typedef struct
 double xmin = -4.0;
 double xmax = +4.0;
 
-double get(multilayerD *net) { return multilD_get(0, net); }
-double get_grad(int j, multilayerD *net) { return multilD_get_grad(0, j, net); }
-double get_d(multilayerD *net) { return multilD_get_d(0, 0, net); }
-double get_grad_d(int j, multilayerD *net)
+double get(multilayerD1 *net) { return multilD1_get(0, net); }
+double get_grad(int j, multilayerD1 *net) { return multilD1_get_grad(0, j, net); }
+double get_d(multilayerD1 *net) { return multilD1_get_d(0, 0, net); }
+double get_grad_d(int j, multilayerD1 *net)
 {
-  return multilD_get_grad_d(0, 0, j, net);
-}
-double get_d2(multilayerD *net) { return multilD_get_d2(0, 0, 0, net); }
-double get_grad_d2(int j, multilayerD *net)
-{
-  return multilD_get_grad_d2(0, 0, 0, j, net);
+  return multilD1_get_grad_d(0, 0, j, net);
 }
 
 void Full_chi2(void *addPar, double *c2, double *grad)
 {
   minim_par *mp = (minim_par *)addPar;
-  multilayerD *net = mp->net;
+  multilayerD1 *net = mp->net;
   double res = 0.0;
 
   double psi2_grad[net->nPar];
-  double hpsi_grad[net->nPar];
+  double psi_h_psi_grad[net->nPar];
 
   for (int j = 0; j < net->nPar; j++)
   {
     grad[j] = 0.0;
     psi2_grad[j] = 0.0;
-    hpsi_grad[j] = 0.0;
+    psi_h_psi_grad[j] = 0.0;
   }
   double norm = 0.0;
   double en = 0.0;
@@ -55,27 +50,20 @@ void Full_chi2(void *addPar, double *c2, double *grad)
   for (int i = 0; i < mp->nX; i++)
   {
     double x = mp->x[i];
-    multilD_FullEvaluate(net, &x);
+    multilD1_FullEvaluate(net, &x);
 
     double psi = get(net);
 
-    double h_psi = -0.5 * get_d2(net) + potential(x) * psi;
-    if (isnan(h_psi) != 0)
-    {
-      printf("err %lf \t %lf \t %lf\n", get_d2(net), potential(x), x);
-      exit(-1);
-    }
+    double psi_h_psi = 0.5 * get_d(net) * get_d(net) + potential(x) * psi * psi;
 
-    en += psi * h_psi * dx;
+    en += psi_h_psi * dx;
     norm += psi * psi * dx;
     for (int j = 0; j < net->nPar; j++)
     {
-
-      psi2_grad[j] += 2.0 * psi * get_grad(j, net) * dx;
-      hpsi_grad[j] +=
-          psi * dx *
-          (-0.5 * get_grad_d2(j, net) + potential(x) * get_grad(j, net));
-      hpsi_grad[j] += h_psi * get_grad(j, net) * dx;
+      double temp = 2.0 * psi * get_grad(j, net) * dx;
+      psi2_grad[j] += temp;
+      psi_h_psi_grad[j] += temp * potential(x);
+      psi_h_psi_grad[j] += get_grad_d(j, net) * get_d(net) * dx;
     }
   }
   en /= norm;
@@ -86,32 +74,12 @@ void Full_chi2(void *addPar, double *c2, double *grad)
 
   for (int j = 0; j < net->nPar; j++)
   {
-    grad[j] = 2.0 * en * (hpsi_grad[j] / norm - en * psi2_grad[j] / norm);
+    grad[j] = 2.0 * en * (psi_h_psi_grad[j] / norm - en * psi2_grad[j] / norm);
     grad[j] += 2.0 * diff * psi2_grad[j];
   }
 }
 
-double test_solution(void *addPar, double en)
-{
-  minim_par *mp = (minim_par *)addPar;
-  multilayerD *net = mp->net;
-  double res = 0.0;
-  double n = 1e+5;
-  double dx = (xmax - xmin) / (n - 1);
-  for (int i = 0; i < n; i++)
-  {
-    double x = xmin + i * dx;
-    multilD_FullEvaluate(net, &x);
-
-    double psi = multilD_get(0, net);
-    double h_psi = -0.5 * multilD_get_d2(0, 0, 0, net) + potential(x) * psi;
-
-    res += pow(h_psi - en * psi, 2);
-  }
-  return res / n;
-}
-
-double get_energy(multilayerD *net)
+double get_energy(multilayerD1 *net)
 {
   double res = 0.0;
   double norm = 0.0;
@@ -122,12 +90,11 @@ double get_energy(multilayerD *net)
   for (int i = 0; i < n; i++)
   {
     double x = xmin + i * dx;
-    multilD_FullEvaluate(net, &x);
+    multilD1_FullEvaluate(net, &x);
 
-    double psi = multilD_get(0, net);
-    double h_psi = -0.5 * multilD_get_d2(0, 0, 0, net) + potential(x) * psi;
-
-    en += psi * h_psi * dx;
+    double psi = multilD1_get(0, net);
+    double psi_h_psi = 0.5 * get_d(net) * get_d(net) + potential(x) * psi * psi;
+    en += psi_h_psi * dx;
     norm += psi * psi * dx;
   }
   en /= norm;
@@ -135,7 +102,7 @@ double get_energy(multilayerD *net)
   return en;
 }
 
-double get_norm(multilayerD *net)
+double get_norm(multilayerD1 *net)
 {
   double res = 0.0;
   double norm = 0.0;
@@ -145,9 +112,9 @@ double get_norm(multilayerD *net)
   for (int i = 0; i < n; i++)
   {
     double x = xmin + i * dx;
-    multilD_FullEvaluate(net, &x);
+    multilD1_FullEvaluate(net, &x);
 
-    double psi = multilD_get(0, net);
+    double psi = multilD1_get(0, net);
 
     norm += psi * psi * dx;
   }
@@ -161,11 +128,11 @@ int main()
   int nO = 1;
   int arch[8] = {nI, 10, 10, 10, 10, 10, 10, nO};
   int nL = 8;
-  int nPar = multilD_getNpar(nL, arch);
-  multilayerD net = multilD_init_net(nL, arch);
-  multilD_setMode(&net, true);
-  // multilD_set_act_one(&net, 0, act_map, act_map_d, act_map_d2, act_map_d3);
-  // multilD_load_net(&net, "networkPar.dat");
+  int nPar = multilD1_getNpar(nL, arch);
+  multilayerD1 net = multilD1_init_net(nL, arch);
+
+  // multilD1_set_act_one(&net, 0, act_map, act_map_d, act_map_d2, act_map_d3);
+  // multilD1_load_net(&net, "networkPar.dat");
   minim_par mp;
   mp.net = &net;
 
@@ -177,6 +144,7 @@ int main()
   }
 
   double chiMin = minimize(net.par, nPar, (void *)(&mp), Full_chi2);
+
   clock_t end = clock();
   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
   printf("Time elapsed in s: %lf\n", time_spent);
@@ -185,7 +153,7 @@ int main()
 
   printf("Final enrgy: %lf\t Expected: %lf\n", energy, ground_state_energy());
 
-  multilD_free_net(&net);
+  multilD1_free_net(&net);
 
   return 0;
 }
