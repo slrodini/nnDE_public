@@ -6,6 +6,7 @@
 #include <time.h>
 long idum = -2;
 
+//struct to be fed to the adam minimizer
 typedef struct
 {
   int nX;
@@ -13,11 +14,14 @@ typedef struct
   multilayerD *net;
 } minim_par;
 
+// specified the potential to be used
 #include <harmonic_potential.h>
 
+//lower and upper limit of the xgrid
 double xmin = -4.0;
 double xmax = +4.0;
 
+// wrappers for the multilD functions
 double get(multilayerD *net) { return multilD_get(0, net); }
 double get_grad(int j, multilayerD *net) { return multilD_get_grad(0, j, net); }
 double get_d(multilayerD *net) { return multilD_get_d(0, 0, net); }
@@ -31,12 +35,14 @@ double get_grad_d2(int j, multilayerD *net)
   return multilD_get_grad_d2(0, 0, 0, j, net);
 }
 
+// function to compute both the loss functions and its gradient w.r.t. the network parameters
 void Full_chi2(void *addPar, double *c2, double *grad)
 {
   minim_par *mp = (minim_par *)addPar;
   multilayerD *net = mp->net;
   double res = 0.0;
 
+  // auxiliary vectors for the gradient computation
   double psi2_grad[net->nPar];
   double hpsi_grad[net->nPar];
 
@@ -46,6 +52,7 @@ void Full_chi2(void *addPar, double *c2, double *grad)
     psi2_grad[j] = 0.0;
     hpsi_grad[j] = 0.0;
   }
+  //initialize the energy and the norm
   double norm = 0.0;
   double en = 0.0;
   double dx = mp->x[1] - mp->x[0];
@@ -54,22 +61,27 @@ void Full_chi2(void *addPar, double *c2, double *grad)
   for (int i = 0; i < mp->nX; i++)
   {
     double x = mp->x[i];
+    // evaluation of the output of the network and the gradient ath the point x
     multilD_FullEvaluate(net, &x);
 
+    // get the wavefunction as the output of the network
     double psi = get(net);
 
+    // compute the action of the Hamiltonian on the w.f.
     double h_psi = -0.5 * get_d2(net) + potential(x) * psi;
+    // check
     if (isnan(h_psi) != 0)
     {
       printf("err %lf \t %lf \t %lf\n", get_d2(net), potential(x), x);
       exit(-1);
     }
-
+    // simple rectangular integral approxiamtion
     en += psi * h_psi * dx;
     norm += psi * psi * dx;
+
+    // integral of the gradients w.r.t. the parameters
     for (int j = 0; j < net->nPar; j++)
     {
-
       psi2_grad[j] += 2.0 * psi * get_grad(j, net) * dx;
       hpsi_grad[j] +=
           psi * dx *
@@ -77,12 +89,15 @@ void Full_chi2(void *addPar, double *c2, double *grad)
       hpsi_grad[j] += h_psi * get_grad(j, net) * dx;
     }
   }
+  // computing the functional < psi | H | psi > / < psi | psi >
   en /= norm;
+  // compute the difference of the norm from 1
   double diff = norm - 1.0;
 
-  // printf("%e\n", norm);
+  //save the loss function value
   *c2 = pow(en, 2) + pow(diff, 2); //
 
+  // computing the gradient w.r.t. the parameters of the loss function (squared sum of the energy functional and the norm difference)
   for (int j = 0; j < net->nPar; j++)
   {
     grad[j] = 2.0 * en * (hpsi_grad[j] / norm - en * psi2_grad[j] / norm);

@@ -34,4 +34,3 @@ The architecture of the network is provided as an array of integers, where each 
 In the parent directory a make file is provided.<br> 
 Run <code>make</code> to compile both the main files generic_pot_D1.c and generic_pot_D2.c that are in the runs directory.<br>
 Run <code>make d*der</code> where *=1,2 to compile either generic_pot_D1.c or generic_pot_D2.c respectivley.<br>
-Run <code>make test</code> to compile the speed benchmark test_der_dim.c present in the test directory.<br>
