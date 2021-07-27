@@ -58,9 +58,9 @@ static double loc_id(double x) { return x; }
 static double loc_id_d(double x) { return 1.0; }
 static double loc_id_d2(double x) { return 0.0; }
 
-static double loc_cubic(double x) { return x * x * x * x; }
-static double loc_cubic_d(double x) { return 4 * x * x * x; }
-static double loc_cubic_d2(double x) { return 12 * x * x; }
+//static double loc_cubic(double x) { return x * x * x * x; }
+//static double loc_cubic_d(double x) { return 4 * x * x * x; }
+//static double loc_cubic_d2(double x) { return 12 * x * x; }
 
 int multilD1_getNpar(int nL, int *arch)
 {
@@ -303,7 +303,6 @@ void multilD1_Evaluate(multilayerD1 *net)
 }
 void multilD1_EvaluateParGradient(multilayerD1 *net)
 {
-  int count = 0;
   double sigma_vec[net->maxNH];
   double sigmaTemp_vec[net->maxNH];
 

@@ -24,9 +24,13 @@ void check2(double val, const char name[], int l) {
 //#define mC (2.0 / 3.0)
 //#define bC 0.001
 
-#define aC 1.1745
-#define mC (2.0 / 3.0)
-#define bC 0.1
+//#define aC 1.1745
+//#define mC (2.0 / 3.0)
+//#define bC 0.1
+
+#define aC 1.0
+#define mC 1.0
+#define bC 0.0
 
 static double loc_sigma(double x)
 {
@@ -66,10 +70,10 @@ static double loc_id_d(double x) { return 1.0; }
 static double loc_id_d2(double x) { return 0.0; }
 static double loc_id_d3(double x) { return 0.0; }
 
-static double loc_cubic(double x) { return x * x * x * x; }
-static double loc_cubic_d(double x) { return 4 * x * x * x; }
-static double loc_cubic_d2(double x) { return 12 * x * x; }
-static double loc_cubic_d3(double x) { return 24.0 * x; }
+//static double loc_cubic(double x) { return x * x * x * x; }
+//static double loc_cubic_d(double x) { return 4 * x * x * x; }
+//static double loc_cubic_d2(double x) { return 12 * x * x; }
+//static double loc_cubic_d3(double x) { return 24.0 * x; }
 
 int multilD_getNpar(int nL, int *arch)
 {
@@ -408,7 +412,6 @@ void multilD_Evaluate(multilayerD *net)
 }
 void multilD_EvaluateParGradient(multilayerD *net)
 {
-  int count = 0;
   double sigma_vec[net->maxNH];
   double sigmaTemp_vec[net->maxNH];
 
@@ -590,7 +593,6 @@ void multilD_EvaluateParGradient(multilayerD *net)
 
 void multilD_EvaluateDiagonalParGradient(multilayerD *net)
 {
-  int count = 0;
   double sigma_vec[net->maxNH];
   double sigmaTemp_vec[net->maxNH];
 

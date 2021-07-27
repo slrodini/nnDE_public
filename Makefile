@@ -13,7 +13,7 @@ LDFLAGS = -lm -lgsl -lgslcblas
 PRODIR=$(BASE)/runs
 TESTPRODIR=$(BASE)/tests
 PROGRAM=generic_pot
-TESTPROGRAM = test_der_dim
+TESTPROGRAM = generic_pot
 
 CSRC=$(wildcard $(SRCDIR)/*.c)
 #OBJS = $(addprefix $(OBJDIR)/,$(CSRC:.c=.o))
