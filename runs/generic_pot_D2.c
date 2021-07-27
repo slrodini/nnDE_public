@@ -95,12 +95,12 @@ void Full_chi2(void *addPar, double *c2, double *grad)
   double diff = norm - 1.0;
 
   //save the loss function value
-  *c2 = pow(en, 2) + pow(diff, 2); //
+  *c2 = en + pow(diff, 2);
 
   // computing the gradient w.r.t. the parameters of the loss function (squared sum of the energy functional and the norm difference)
   for (int j = 0; j < net->nPar; j++)
   {
-    grad[j] = 2.0 * en * (hpsi_grad[j] / norm - en * psi2_grad[j] / norm);
+    grad[j] = (hpsi_grad[j] / norm - en * psi2_grad[j] / norm);
     grad[j] += 2.0 * diff * psi2_grad[j];
   }
 }
@@ -181,7 +181,7 @@ int main()
   minim_par mp;
   mp.net = &net;
 
-  mp.nX = 1000;
+  mp.nX = 10000;
   mp.x = (double *)malloc(sizeof(double) * mp.nX);
   for (int i = 0; i < mp.nX; i++)
   {

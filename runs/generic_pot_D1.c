@@ -69,11 +69,11 @@ void Full_chi2(void *addPar, double *c2, double *grad)
   double diff = norm - 1.0;
 
   // printf("%e\n", norm);
-  *c2 = pow(en, 2) + pow(diff, 2); //
+  *c2 = en + pow(diff, 2);
 
   for (int j = 0; j < net->nPar; j++)
   {
-    grad[j] = 2.0 * en * (psi_h_psi_grad[j] / norm - en * psi2_grad[j] / norm);
+    grad[j] = (psi_h_psi_grad[j] / norm - en * psi2_grad[j] / norm);
     grad[j] += 2.0 * diff * psi2_grad[j];
   }
 }
@@ -133,7 +133,7 @@ int main()
   minim_par mp;
   mp.net = &net;
 
-  mp.nX = 1000;
+  mp.nX = 10000;
   mp.x = (double *)malloc(sizeof(double) * mp.nX);
   for (int i = 0; i < mp.nX; i++)
   {
