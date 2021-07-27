@@ -1,4 +1,3 @@
-#include <activation.h>
 #include <default.h>
 #include <minimize.h>
 #include <network.h>
@@ -131,8 +130,6 @@ int main()
   int nPar = multilD1_getNpar(nL, arch);
   multilayerD1 net = multilD1_init_net(nL, arch);
 
-  // multilD1_set_act_one(&net, 0, act_map, act_map_d, act_map_d2, act_map_d3);
-  // multilD1_load_net(&net, "networkPar.dat");
   minim_par mp;
   mp.net = &net;
 

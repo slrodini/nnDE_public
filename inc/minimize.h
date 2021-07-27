@@ -1,5 +1,4 @@
 #include <adam.h>
-#include <gsl/gsl_multimin.h>
 
 double minimize(double *par, int nPar, void *addPar,
                 void (*fnc)(void *, double *, double *));

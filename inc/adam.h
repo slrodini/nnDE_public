@@ -1,9 +1,7 @@
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <default.h>
 
-typedef struct {
+typedef struct
+{
   double alpha, beta1, beta2, dfToll;
   int maxIt, changeLearn;
 } adamPar;
