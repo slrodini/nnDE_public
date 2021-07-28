@@ -1,5 +1,7 @@
 # nnDE_public
 
+<h3> nnDE: a library for first and second order neural network derivatives</h3>
+
 This software provide the possibility of computing the first and second derivatives with respect to the input, as well as the gradient with respect of all the parameters of an arbitrary deep feed-forward neural network.
 
 In the header file `network.h' can be found the supported network structures as well as all the relevant functions, which are briefly summarized here.
