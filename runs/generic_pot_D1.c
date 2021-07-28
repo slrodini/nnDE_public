@@ -126,7 +126,7 @@ int main()
   int nI = 1;
   int nO = 1;
   int arch[8] = {nI, 10, 10, 10, 10, 10, 10, nO};
-  int nL = 8;
+  int nL = sizeof(arch) / sizeof(arch[0]);
   int nPar = multilD1_getNpar(nL, arch);
   multilayerD1 net = multilD1_init_net(nL, arch);
 

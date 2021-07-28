@@ -1,11 +1,10 @@
 #include <minimize.h>
 
-static double stepsize = 0.1;
-static double lineeps = 0.05;
-
 double run_adam(double *par, int nPar, void *addPar,
                 void (*fnc)(void *, double *, double *))
 {
+  // Set up multiple pass of ADAM (using ADAM2 in this case)
+  // To speed up the first iterations and then refine the result
   adamPar aP;
   aP.alpha = 0.1;
   aP.beta1 = 0.9;

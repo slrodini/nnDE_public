@@ -107,9 +107,11 @@ void Full_chi2(void *addPar, double *c2, double *grad)
 
 double test_solution(void *addPar, double en)
 {
+  // Test the proposed network with the final energy using the eigenvalue problem (H-E)| psi > = 0
   minim_par *mp = (minim_par *)addPar;
   multilayerD *net = mp->net;
   double res = 0.0;
+  //Finer grid of integration
   double n = 1e+5;
   double dx = (xmax - xmin) / (n - 1);
   for (int i = 0; i < n; i++)
@@ -127,6 +129,7 @@ double test_solution(void *addPar, double en)
 
 double get_energy(multilayerD *net)
 {
+  // Compute the energy via the energy functional < psi | H | psi > / < psi | psi >
   double res = 0.0;
   double norm = 0.0;
   double en = 0.0;
@@ -151,6 +154,7 @@ double get_energy(multilayerD *net)
 
 double get_norm(multilayerD *net)
 {
+  // Compute the norm (squared) of the w.f.
   double res = 0.0;
   double norm = 0.0;
   double n = 1e+5;
@@ -173,14 +177,19 @@ int main()
   clock_t begin = clock();
   int nI = 1;
   int nO = 1;
+  // Specify the architecture
   int arch[8] = {nI, 10, 10, 10, 10, 10, 10, nO};
-  int nL = 8;
+  int nL = sizeof(arch) / sizeof(arch[0]);
+  // Get the number of parameters for the minimizer
   int nPar = multilD_getNpar(nL, arch);
+  //Init the network
   multilayerD net = multilD_init_net(nL, arch);
+  // Set the computation mode to diagonal Hessian
   multilD_setMode(&net, true);
   minim_par mp;
   mp.net = &net;
 
+  // Init the integration grid
   mp.nX = 10000;
   mp.x = (double *)malloc(sizeof(double) * mp.nX);
   for (int i = 0; i < mp.nX; i++)
@@ -188,6 +197,7 @@ int main()
     mp.x[i] = xmin + (xmax - xmin) * (double)(i) / ((double)mp.nX - 1.0);
   }
 
+  // Perform the minimization with multiple pass of ADAM
   double chiMin = minimize(net.par, nPar, (void *)(&mp), Full_chi2);
   clock_t end = clock();
   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
