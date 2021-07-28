@@ -1,5 +1,4 @@
-<h1> nnDE: </h1> <h3>a library for first and second order neural network derivatives</h3>
-
+<h1> nnDE </h1> <h3>a library for first and second order neural network derivatives</h3>
 
 This software provide the possibility of computing the first and second derivatives with respect to the input, as well as the gradient with respect of all the parameters of an arbitrary deep feed-forward neural network.
 
